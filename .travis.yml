@@ -1,0 +1,16 @@
+language: ruby
+rvm:
+  - 2.0.0-p648
+  - 2.1.8
+  - 2.2.3
+  - 2.3.1
+env:
+  - secure: "SWp7F0Gu07m6DYXYNMTL746xXsS1oGmv68XSf/6Af/gdEEPLfllJ0hsHK7D0tiXvtvUFlQ+zQr7WVSYavvdkoaPjTAICD3pL5U7yMla4v6MQl4Mohwr2LwUx9YC18Ij6HIjSsk2EUSqxTyANOqxcRi820nZZUtZeGpUsP0aO/yCyBQOQdLSGOVHi7oUMrKfCjjl9vjrKAOHvsvlM4XvB4EzRM2m2hoxkQBOFWVGRbZXWQUzMuLW1kh1WIScul2ObFWFMz8zBFkizIiEHktwlaqWst66w1464WRv/JcvUrEombyvvoJbeeByguhoa3Y614t1ESYDKH65oUVNQUhlAr1+iUqUJvdulIh2WAuyer3rHytEdXVfs8kbPLcVhqToPTUAV4mzJ1jFWttguDHUh5R4Y6UTw9jVbh+d7lfuE4y3ghwTvciCCdkYTHRHJIzDkOW6pKpOxW0cDaX3J/7Gh8lJ7asLsP16uqbrC3W0gpFBWmMnielDfXzWkrfPlZtR8N75SyHgw/fPHfcqvw1IadrZ8tsyAIHj7afdIhcBrd86UCvGW7feF0RUYlXevxs2aesAnujpJatTp23fCUBsbJywI7DmvuvWLwbTBumI1mEvyAbQh+lIy2oqeK1/3lUtmDkWey21fRt06hippKf40DiAXK4Gzn0HuYkQotc9GHeo="
+cache: bundler
+script: bundle install && bundle exec rspec spec/
+deploy:
+  provider: rubygems
+  api_key: $GEM_TOKEN
+  gem: kontena-plugin-upcloud
+  on:
+    tags: true
