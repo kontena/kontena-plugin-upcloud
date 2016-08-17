@@ -3,6 +3,8 @@ require 'securerandom'
 module Kontena::Plugin::Upcloud::Master
   class CreateCommand < Clamp::Command
     include Kontena::Cli::Common
+    
+    command_type :provision_master
 
     option "--username", "USER", "Upcloud username", required: true
     option "--password", "PASS", "Upcloud password", required: true
@@ -14,8 +16,6 @@ module Kontena::Plugin::Upcloud::Master
     option "--vault-iv", "VAULT_IV", "Initialization vector for Vault (optional)"
     option "--mongodb-uri", "URI", "External MongoDB uri (optional)"
     option "--version", "VERSION", "Define installed Kontena version", default: 'latest'
-    option "--auth-provider-url", "AUTH_PROVIDER_URL", "Define authentication provider url"
-
 
     def execute
 
@@ -28,9 +28,9 @@ module Kontena::Plugin::Upcloud::Master
           plan: plan,
           zone: zone,
           version: version,
-          auth_server: auth_provider_url,
           vault_secret: vault_secret || SecureRandom.hex(24),
           vault_iv: vault_iv || SecureRandom.hex(24),
+          initial_admin_code: SecureRandom.hex(16),
           mongodb_uri: mongodb_uri
       )
     end
