@@ -4,8 +4,6 @@ module Kontena::Plugin::Upcloud::Master
   class CreateCommand < Clamp::Command
     include Kontena::Cli::Common
     
-    command_type :provision_master
-
     option "--username", "USER", "Upcloud username", required: true
     option "--password", "PASS", "Upcloud password", required: true
     option "--ssh-key", "SSH_KEY", "Path to ssh public key", required: true
