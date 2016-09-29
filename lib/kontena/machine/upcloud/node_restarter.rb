@@ -1,11 +1,10 @@
-require 'shell-spinner'
-
 module Kontena
   module Machine
     module Upcloud
       class NodeRestarter
         include RandomName
         include UpcloudCommon
+        include Kontena::Cli::ShellSpinner
 
         attr_reader :username, :password
 
@@ -27,7 +26,7 @@ module Kontena
           server = servers[:servers][:server].find{|s| s[:hostname] == name}
 
           if server
-            ShellSpinner "Restarting Upcloud node #{name.colorize(:cyan)} " do
+            spinner "Restarting Upcloud node #{name.colorize(:cyan)} " do
               result = post(
                 "server/#{server[:uuid]}/restart", body: {
                   restart_server: {

@@ -10,6 +10,7 @@ module Kontena
         include RandomName
         include Machine::CertHelper
         include UpcloudCommon
+        include Kontena::Cli::ShellSpinner
 
         attr_reader :http_client, :username, :password
 
@@ -30,7 +31,7 @@ module Kontena
             abort('Invalid ssl cert') unless File.exists?(File.expand_path(opts[:ssl_cert]))
             ssl_cert = File.read(File.expand_path(opts[:ssl_cert]))
           else
-            ShellSpinner "Generating self-signed SSL certificate" do
+            spinner "* Generating self-signed SSL certificate" do
               ssl_cert = generate_self_signed_cert
             end
           end
@@ -79,7 +80,7 @@ module Kontena
             }
           }.to_json
 
-          ShellSpinner "Creating Upcloud master #{hostname.colorize(:cyan)} " do
+          spinner "* Creating Upcloud master #{hostname.colorize(:cyan)} " do
             response = post('server', body: device_data)
             if response.has_key?(:error)
               abort("\nUpcloud server creation failed (#{response[:error].fetch(:error_message, '')})")
@@ -102,11 +103,14 @@ module Kontena
           Excon.defaults[:ssl_verify_peer] = false
           @http_client = Excon.new("#{master_url}", :connect_timeout => 10)
 
-          ShellSpinner "Waiting for #{hostname.colorize(:cyan)} to start" do
+          spinner "* Waiting for #{hostname.colorize(:cyan)} to start" do
             sleep 5 until master_running?
           end
 
+          puts
           puts "Kontena Master is now running at #{master_url}".colorize(:green)
+          puts
+
           {
             name: hostname.sub('kontena-master-', ''),
             public_ip: device_public_ip[:address],

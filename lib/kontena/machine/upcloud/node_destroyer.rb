@@ -1,11 +1,10 @@
-require 'shell-spinner'
-
 module Kontena
   module Machine
     module Upcloud
       class NodeDestroyer
         include RandomName
         include UpcloudCommon
+        include Kontena::Cli::ShellSpinner
 
         attr_reader :api_client, :username, :password
 
@@ -39,7 +38,7 @@ module Kontena
 
           if server
             unless server[:state].eql?('stopped')
-              ShellSpinner "Shutting down Upcloud node #{name.colorize(:cyan)} " do
+              spinner "Shutting down Upcloud node #{name.colorize(:cyan)} " do
                 device_data = post(
                   "server/#{server[:uuid]}/stop", body: {
                     stop_server: {
