@@ -1,7 +1,6 @@
 require 'fileutils'
 require 'erb'
 require 'open3'
-require 'shell-spinner'
 
 module Kontena
   module Machine
@@ -31,7 +30,7 @@ module Kontena
             abort('Invalid ssl cert') unless File.exists?(File.expand_path(opts[:ssl_cert]))
             ssl_cert = File.read(File.expand_path(opts[:ssl_cert]))
           else
-            spinner "* Generating self-signed SSL certificate" do
+            spinner "Generating self-signed SSL certificate" do
               ssl_cert = generate_self_signed_cert
             end
           end
@@ -80,7 +79,7 @@ module Kontena
             }
           }.to_json
 
-          spinner "* Creating Upcloud master #{hostname.colorize(:cyan)} " do
+          spinner "Creating Upcloud master #{hostname.colorize(:cyan)} " do
             response = post('server', body: device_data)
             if response.has_key?(:error)
               abort("\nUpcloud server creation failed (#{response[:error].fetch(:error_message, '')})")
@@ -103,8 +102,8 @@ module Kontena
           Excon.defaults[:ssl_verify_peer] = false
           @http_client = Excon.new("#{master_url}", :connect_timeout => 10)
 
-          spinner "* Waiting for #{hostname.colorize(:cyan)} to start" do
-            sleep 5 until master_running?
+          spinner "Waiting for #{hostname.colorize(:cyan)} to start" do
+            sleep 1 until master_running?
           end
 
           puts

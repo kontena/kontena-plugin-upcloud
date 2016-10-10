@@ -55,13 +55,13 @@ module Kontena
               end
             end
 
-            ShellSpinner "Terminating Upcloud node #{name.colorize(:cyan)} " do
+            spinner "Terminating Upcloud node #{name.colorize(:cyan)} " do
               response = delete("server/#{server[:uuid]}")
               abort "Cannot delete node #{name.colorize(:cyan)} in Upcloud" unless response[:success]
             end
 
             storage_uuids.each do |uuid|
-              ShellSpinner "Deleting Upcloud storage device '#{uuid.colorize(:cyan)}' " do
+              spinner "Deleting Upcloud storage device '#{uuid.colorize(:cyan)}' " do
                 response = delete("storage/#{uuid}")
                 unless response[:success]
                   puts "#{"WARNING".colorize(:red)}: Couldn't delete Upcloud storage '#{uuid.colorize(:cyan)}', check manually."
@@ -73,7 +73,7 @@ module Kontena
           end
           node = api_client.get("grids/#{grid['id']}/nodes")['nodes'].find{|n| n['name'] == name}
           if node
-            ShellSpinner "Removing node #{name.colorize(:cyan)} from grid #{grid['name'].colorize(:cyan)} " do
+            spinner "Removing node #{name.colorize(:cyan)} from grid #{grid['name'].colorize(:cyan)} " do
               api_client.delete("grids/#{grid['id']}/nodes/#{name}")
             end
           end
