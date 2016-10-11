@@ -9,7 +9,7 @@ module Kontena
         include RandomName
         include Machine::CertHelper
         include UpcloudCommon
-        include Kontena::Cli::ShellSpinner
+        include Kontena::Cli::Common
 
         attr_reader :http_client, :username, :password
 
@@ -41,17 +41,26 @@ module Kontena
           abort('Server plan not found on Upcloud') unless plan = find_plan(opts[:plan])
           abort('Zone not found on Upcloud') unless zone_exist?(opts[:zone])
 
-          hostname = generate_name
+          if opts[:name]
+            server_name = opts[:name]
+            hostname = opts[:name].start_with?('kontena-master') ? opts[:name] : "kontena-master-#{opts[:name]}"
+          else
+            hostname = generate_name
+            server_name = hostname.sub('kontena-master-', '')
+          end
+
+          server_name = opts[:name] 
+          hostname = opts[:name] || generate_name
 
           userdata_vars = opts.merge(
               ssl_cert: ssl_cert,
-              server_name: hostname.sub('kontena-master-', '')
+              server_name: server_name
           )
 
           device_data = {
             server: {
               zone: opts[:zone],
-              title: "Kontena Master #{hostname}",
+              title: "Kontena Master #{server_name}",
               hostname: hostname,
               plan: plan[:name],
               vnc: 'off',
@@ -106,12 +115,10 @@ module Kontena
             sleep 1 until master_running?
           end
 
-          puts
-          puts "Kontena Master is now running at #{master_url}".colorize(:green)
-          puts
+          vfakespinner "Kontena Master is now running at #{master_url}"
 
           {
-            name: hostname.sub('kontena-master-', ''),
+            name: server_name,
             public_ip: device_public_ip[:address],
             code: opts[:initial_admin_code]
           }

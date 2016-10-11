@@ -1,9 +1,10 @@
 require 'securerandom'
 
 module Kontena::Plugin::Upcloud::Master
-  class CreateCommand < Clamp::Command
+  class CreateCommand < Kontena::Command
     include Kontena::Cli::Common
-    
+
+    option "--name", "[NAME]", "Set Kontena Master name"
     option "--username", "USER", "Upcloud username", required: true
     option "--password", "PASS", "Upcloud password", required: true
     option "--ssh-key", "SSH_KEY", "Path to ssh public key", required: true
@@ -17,10 +18,11 @@ module Kontena::Plugin::Upcloud::Master
 
     def execute
 
-      require 'kontena/machine/upcloud'
+      require_relative '../../../machine/upcloud'
 
       provisioner = Kontena::Machine::Upcloud::MasterProvisioner.new(username, password)
       provisioner.run!(
+          name: self.name,
           ssh_key: ssh_key,
           ssl_cert: ssl_cert,
           plan: plan,

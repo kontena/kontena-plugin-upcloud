@@ -1,5 +1,5 @@
 module Kontena::Plugin::Upcloud::Nodes
-  class RestartCommand < Clamp::Command
+  class RestartCommand < Kontena::Command
     include Kontena::Cli::Common
     include Kontena::Cli::GridOptions
 

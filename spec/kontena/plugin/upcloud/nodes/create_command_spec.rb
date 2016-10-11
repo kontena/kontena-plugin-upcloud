@@ -11,15 +11,15 @@ describe Kontena::Plugin::Upcloud::Nodes::CreateCommand do
     spy(:provisioner)
   end
 
-  let(:client) do
-    spy(:client)
+  let(:upcloud_client) do
+    spy(:upcloud_client)
   end
 
   describe '#run' do
     before(:each) do
       allow(subject).to receive(:require_current_grid).and_return('test-grid')
       allow(subject).to receive(:fetch_grid).and_return({})
-      allow(subject).to receive(:client).and_return(client)
+      allow(subject).to receive(:upcloud_client).and_return(upcloud_client)
     end
 
     it 'raises usage error if no options are defined' do
