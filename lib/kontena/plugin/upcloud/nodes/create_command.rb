@@ -1,5 +1,5 @@
 module Kontena::Plugin::Upcloud::Nodes
-  class CreateCommand < Clamp::Command
+  class CreateCommand < Kontena::Command
     include Kontena::Cli::Common
     include Kontena::Cli::GridOptions
 
@@ -11,13 +11,12 @@ module Kontena::Plugin::Upcloud::Nodes
     option "--zone", "ZONE", "Zone", default: 'fi-hel1'
     option "--version", "VERSION", "Define installed Kontena version", default: 'latest'
 
-    def execute
-      require_api_url
-      require_current_grid
+    requires_current_master_token
 
-      require 'kontena/machine/upcloud'
+    def execute
+      require_relative '../../../machine/upcloud'
       grid = fetch_grid
-      provisioner = Kontena::Machine::Upcloud::NodeProvisioner.new(client(require_token), username, password)
+      provisioner = Kontena::Machine::Upcloud::NodeProvisioner.new(client, username, password)
       provisioner.run!(
         master_uri: api_url,
         grid_token: grid['token'],
@@ -33,7 +32,7 @@ module Kontena::Plugin::Upcloud::Nodes
     # @param [String] id
     # @return [Hash]
     def fetch_grid
-      client(require_token).get("grids/#{current_grid}")
+      client.get("grids/#{current_grid}")
     end
 
   end

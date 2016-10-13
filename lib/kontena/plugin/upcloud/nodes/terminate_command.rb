@@ -1,5 +1,5 @@
 module Kontena::Plugin::Upcloud::Nodes
-  class TerminateCommand < Clamp::Command
+  class TerminateCommand < Kontena::Command
     include Kontena::Cli::Common
     include Kontena::Cli::GridOptions
 
@@ -7,13 +7,12 @@ module Kontena::Plugin::Upcloud::Nodes
     option "--username", "USER", "Upcloud username", required: true
     option "--password", "PASS", "Upcloud password", required: true
 
-    def execute
-      require_api_url
-      require_current_grid
+    requires_current_master_token
 
-      require 'kontena/machine/upcloud'
-      grid = client(require_token).get("grids/#{current_grid}")
-      destroyer = Kontena::Machine::Upcloud::NodeDestroyer.new(client(require_token), username, password)
+    def execute
+      require_relative '../../../machine/upcloud'
+      grid = client.get("grids/#{current_grid}")
+      destroyer = Kontena::Machine::Upcloud::NodeDestroyer.new(client, username, password)
       destroyer.run!(grid, name)
     end
   end

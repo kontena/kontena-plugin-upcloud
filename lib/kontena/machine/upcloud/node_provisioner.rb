@@ -1,7 +1,6 @@
 require 'fileutils'
 require 'erb'
 require 'open3'
-require 'shell-spinner'
 
 module Kontena
   module Machine
@@ -9,6 +8,7 @@ module Kontena
       class NodeProvisioner
         include RandomName
         include UpcloudCommon
+        include Kontena::Cli::ShellSpinner
 
         attr_reader :api_client, :username, :password
 
@@ -73,7 +73,7 @@ module Kontena
             }
           }.to_json
 
-          ShellSpinner "Creating Upcloud node #{hostname.colorize(:cyan)} " do
+          spinner "Creating Upcloud node #{hostname.colorize(:cyan)} " do
             response = post('server', body: device_data)
 
             if response.has_key?(:error)
@@ -88,7 +88,7 @@ module Kontena
           end
 
           node = nil
-          ShellSpinner "Waiting for node #{hostname.colorize(:cyan)} join to grid #{opts[:grid].colorize(:cyan)} " do
+          spinner "Waiting for node #{hostname.colorize(:cyan)} join to grid #{opts[:grid].colorize(:cyan)} " do
             sleep 2 until node = node_exists_in_grid?(opts[:grid], hostname)
           end
           set_labels(node, ["region=#{opts[:zone]}", "provider=upcloud"])

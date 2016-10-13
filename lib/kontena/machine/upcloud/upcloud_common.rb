@@ -9,8 +9,8 @@ module Kontena
         attr_reader :username
         attr_reader :password
         
-        def client
-          @client ||= Excon.new(
+        def upcloud_client
+          @upcloud_client ||= Excon.new(
             'https://api.upcloud.com',
             omit_default_port: true,
             user: username,
@@ -49,15 +49,13 @@ module Kontena
         end
 
         [:get, :post, :delete].each do |http_method|
-          define_method http_method do |path, opts={}|
-            response = client.send(
-              http_method, 
-              opts.merge(
+          define_method http_method do |path, options={}|
+            response = upcloud_client.send(
+              http_method,
+              { 
                 path: File.join('/1.2', path),
-                headers: {
-                  'Content-Type': 'application/json'
-                }
-              )
+                headers: { 'Content-Type' => 'application/json' }
+              }.merge(options)
             )
             if response.body && response.body.start_with?('{')
               JSON.parse(response.body, symbolize_names: true)

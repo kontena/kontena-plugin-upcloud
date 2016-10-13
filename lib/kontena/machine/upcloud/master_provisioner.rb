@@ -1,7 +1,6 @@
 require 'fileutils'
 require 'erb'
 require 'open3'
-require 'shell-spinner'
 
 module Kontena
   module Machine
@@ -10,6 +9,7 @@ module Kontena
         include RandomName
         include Machine::CertHelper
         include UpcloudCommon
+        include Kontena::Cli::Common
 
         attr_reader :http_client, :username, :password
 
@@ -30,7 +30,7 @@ module Kontena
             abort('Invalid ssl cert') unless File.exists?(File.expand_path(opts[:ssl_cert]))
             ssl_cert = File.read(File.expand_path(opts[:ssl_cert]))
           else
-            ShellSpinner "Generating self-signed SSL certificate" do
+            spinner "Generating self-signed SSL certificate" do
               ssl_cert = generate_self_signed_cert
             end
           end
@@ -41,21 +41,26 @@ module Kontena
           abort('Server plan not found on Upcloud') unless plan = find_plan(opts[:plan])
           abort('Zone not found on Upcloud') unless zone_exist?(opts[:zone])
 
-          hostname = generate_name
+          if opts[:name]
+            server_name = opts[:name]
+            hostname = opts[:name].start_with?('kontena-master') ? opts[:name] : "kontena-master-#{opts[:name]}"
+          else
+            hostname = generate_name
+            server_name = hostname.sub('kontena-master-', '')
+          end
 
-          userdata_vars = {
+          server_name = opts[:name] 
+          hostname = opts[:name] || generate_name
+
+          userdata_vars = opts.merge(
               ssl_cert: ssl_cert,
-              auth_server: opts[:auth_server],
-              version: opts[:version],
-              vault_secret: opts[:vault_secret],
-              vault_iv: opts[:vault_iv],
-              mongodb_uri: opts[:mongodb_uri]
-          }
+              server_name: server_name
+          )
 
           device_data = {
             server: {
               zone: opts[:zone],
-              title: "Kontena Master #{hostname}",
+              title: "Kontena Master #{server_name}",
               hostname: hostname,
               plan: plan[:name],
               vnc: 'off',
@@ -83,7 +88,7 @@ module Kontena
             }
           }.to_json
 
-          ShellSpinner "Creating Upcloud master #{hostname.colorize(:cyan)} " do
+          spinner "Creating Upcloud master #{hostname.colorize(:cyan)} " do
             response = post('server', body: device_data)
             if response.has_key?(:error)
               abort("\nUpcloud server creation failed (#{response[:error].fetch(:error_message, '')})")
@@ -106,12 +111,17 @@ module Kontena
           Excon.defaults[:ssl_verify_peer] = false
           @http_client = Excon.new("#{master_url}", :connect_timeout => 10)
 
-          ShellSpinner "Waiting for #{hostname.colorize(:cyan)} to start" do
-            sleep 5 until master_running?
+          spinner "Waiting for #{hostname.colorize(:cyan)} to start" do
+            sleep 1 until master_running?
           end
 
-          puts "Kontena Master is now running at #{master_url}"
-          puts "Use #{"kontena login --name=#{hostname.sub('kontena-master-', '')} #{master_url}".colorize(:light_black)} to complete Kontena Master setup"
+          vfakespinner "Kontena Master is now running at #{master_url}"
+
+          {
+            name: server_name,
+            public_ip: device_public_ip[:address],
+            code: opts[:initial_admin_code]
+          }
         end
 
         def user_data(vars)
