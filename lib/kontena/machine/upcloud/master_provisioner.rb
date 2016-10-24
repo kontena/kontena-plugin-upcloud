@@ -121,7 +121,7 @@ module Kontena
             master_version = JSON.parse(@http_client.get(path: '/').body)["version"] rescue nil
           end
 
-          spinner "Kontena Master is now running at #{master_url}"
+          spinner "Kontena Master #{master_version} is now running at #{master_url}"
 
           {
             name: server_name,
