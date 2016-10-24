@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'erb'
 require 'open3'
+require 'json'
 
 module Kontena
   module Machine
@@ -30,7 +31,7 @@ module Kontena
             abort('Invalid ssl cert') unless File.exists?(File.expand_path(opts[:ssl_cert]))
             ssl_cert = File.read(File.expand_path(opts[:ssl_cert]))
           else
-            spinner "Generating self-signed SSL certificate" do
+            spinner "Generating a self-signed SSL certificate" do
               ssl_cert = generate_self_signed_cert
             end
           end
@@ -88,7 +89,7 @@ module Kontena
             }
           }.to_json
 
-          spinner "Creating Upcloud master #{hostname.colorize(:cyan)} " do
+          spinner "Creating an Upcloud server #{hostname.colorize(:cyan)} " do
             response = post('server', body: device_data)
             if response.has_key?(:error)
               abort("\nUpcloud server creation failed (#{response[:error].fetch(:error_message, '')})")
@@ -115,11 +116,18 @@ module Kontena
             sleep 1 until master_running?
           end
 
-          vfakespinner "Kontena Master is now running at #{master_url}"
+          master_version = nil
+          spinner "Retrieving Kontena Master version" do
+            master_version = JSON.parse(@http_client.get(path: '/').body)["version"] rescue nil
+          end
+
+          spinner "Kontena Master is now running at #{master_url}"
 
           {
             name: server_name,
             public_ip: device_public_ip[:address],
+            provider: 'upcloud',
+            version: master_version,
             code: opts[:initial_admin_code]
           }
         end
