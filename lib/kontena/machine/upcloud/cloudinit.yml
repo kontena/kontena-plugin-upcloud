@@ -25,6 +25,10 @@ write_files:
       nameserver 172.17.43.1
       nameserver 8.8.8.8
       nameserver 8.8.4.4
+  # disable veth interfaces from networkd
+  - path: /etc/systemd/network/50-docker-veth.network
+    permissions: 0644
+    owner: root
 coreos:
   units:
     - name: etcd2.service
@@ -45,6 +49,19 @@ coreos:
         Name=weave*
 
         [Network]
+    - name: zz-default.network
+      runtime: false
+      content: |
+        # default should only match real network interfaces
+        [Match]
+        Name=eth*
+
+        [Network]
+        DHCP=yes
+
+        [DHCP]
+        UseMTU=true
+        UseDomains=true
     - name: kontena-agent.service
       command: start
       enable: true
