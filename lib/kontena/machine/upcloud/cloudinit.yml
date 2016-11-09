@@ -25,10 +25,6 @@ write_files:
       nameserver 172.17.43.1
       nameserver 8.8.8.8
       nameserver 8.8.4.4
-  # disable veth interfaces from networkd
-  - path: /etc/systemd/network/50-docker-veth.network
-    permissions: 0644
-    owner: root
 coreos:
   units:
     - name: etcd2.service
@@ -41,14 +37,10 @@ coreos:
         Restart=always
         RestartSec=5
         ExecStart=/usr/bin/docker logs --tail=10 -f kontena-etcd
-    - name: 10-weave.network
-      runtime: false
-      content: |
-        [Match]
-        Type=bridge
-        Name=weave*
-
-        [Network]
+    - name: 50-docker.network
+      mask: true
+    - name: 50-docker-veth.network
+      mask: true
     - name: zz-default.network
       runtime: false
       content: |
