@@ -50,7 +50,7 @@ module Kontena
             server_name = hostname.sub('kontena-master-', '')
           end
 
-          server_name = opts[:name] 
+          server_name = opts[:name]
           hostname = opts[:name] || generate_name
 
           userdata_vars = opts.merge(
@@ -61,7 +61,7 @@ module Kontena
           device_data = {
             server: {
               zone: opts[:zone],
-              title: "Kontena Master #{server_name}",
+              title: server_name,
               hostname: hostname,
               plan: plan[:name],
               vnc: 'off',
