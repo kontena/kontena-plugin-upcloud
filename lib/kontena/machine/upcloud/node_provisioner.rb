@@ -45,7 +45,7 @@ module Kontena
           device_data = {
             server: {
               zone: opts[:zone],
-              title: hostname,
+              title: "#{opts[:grid]}/#{hostname}",
               hostname: hostname,
               plan: plan[:name],
               vnc: 'off',
@@ -113,7 +113,7 @@ module Kontena
 
         def set_labels(node, labels)
           data = {labels: labels}
-          api_client.put("nodes/#{node['id']}", data, {}, {'Kontena-Grid-Token' => node['grid']['token']})
+          api_client.put("nodes/#{node['grid']['id']}/#{node['id']}", data)
         end
       end
     end
