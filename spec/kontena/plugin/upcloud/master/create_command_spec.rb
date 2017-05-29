@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'kontena/plugin/upcloud_command'
+require 'kontena/plugin/upcloud/master/create_command'
 
 describe Kontena::Plugin::Upcloud::Master::CreateCommand do
 

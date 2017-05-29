@@ -1,4 +1,3 @@
-require 'securerandom'
 require 'kontena/plugin/upcloud/prompts'
 
 module Kontena::Plugin::Upcloud::Master
@@ -15,9 +14,10 @@ module Kontena::Plugin::Upcloud::Master
     option "--mongodb-uri", "URI", "External MongoDB uri (optional)"
 
     def execute
-      require_relative '../../../machine/upcloud'
-
       abort_unless_api_access
+
+      require 'securerandom'
+      require 'kontena/machine/upcloud'
 
       provisioner.run!(
           name: self.name,
