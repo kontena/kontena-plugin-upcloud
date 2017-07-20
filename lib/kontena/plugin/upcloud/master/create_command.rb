@@ -38,15 +38,15 @@ module Kontena::Plugin::Upcloud::Master
     end
 
     def default_username
-      prompt.ask('UpCloud username: ', echo: true)
+      prompt.ask('UpCloud username:', echo: true)
     end
 
     def default_password
-      prompt.ask('UpCloud password: ', echo: false)
+      prompt.ask('UpCloud password:', echo: false)
     end
 
     def default_plan
-      prompt.select("Choose plan: ") do |menu|
+      prompt.select("Choose plan:") do |menu|
         Kontena::Plugin::Upcloud::PLANS.each do |plan, name|
           menu.choice name, plan
         end
@@ -54,7 +54,7 @@ module Kontena::Plugin::Upcloud::Master
     end
 
     def default_zone
-      prompt.select("Choose availability zone: ") do |menu|
+      prompt.select("Choose availability zone:") do |menu|
         Kontena::Plugin::Upcloud::ZONES.each do |zone, name|
           menu.choice name, zone
         end
