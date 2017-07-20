@@ -27,10 +27,25 @@ write_files:
       nameserver 8.8.4.4
 coreos:
   units:
+    - name: update-on-boot.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Trigger OS update on boot
+        After=update_engine.service
+        ConditionPathExists=!/etc/update-on-boot.lock
+        [Service]
+        Type=oneshot
+        TimeoutStartSec=0
+        ExecStart=/usr/bin/update_engine_client -update
+        ExecStart=/bin/touch /etc/update-on-boot.lock
+        ExecStartPost=/usr/sbin/reboot
     - name: etcd2.service
       command: start
       enable: true
       content: |
+        [Unit]
         Description=etcd 2.0
         After=docker.service
         [Service]
@@ -82,3 +97,4 @@ coreos:
             -v=/etc/kontena-agent.env:/etc/kontena.env \
             --net=host \
             kontena/agent:${KONTENA_VERSION}
+        ExecStop=/usr/bin/docker stop kontena-agent
