@@ -22,7 +22,6 @@ module Kontena::Plugin::Upcloud::Nodes
         grid_token: grid['token'],
         grid: current_grid,
         ssh_key: ssh_key,
-        count: count,
         name: name,
         plan: plan,
         zone: zone,
