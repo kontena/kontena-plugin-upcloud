@@ -40,8 +40,11 @@ module Kontena
           abort('Server plan not found on Upcloud') unless plan = find_plan(opts[:plan])
           abort('Zone not found on Upcloud') unless zone_exist?(opts[:zone])
 
-          hostname = generate_name
-
+          if opts[:name]
+            hostname = opts[:name]
+          else
+            hostname = generate_name
+          end
           device_data = {
             server: {
               zone: opts[:zone],
