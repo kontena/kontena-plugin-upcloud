@@ -21,11 +21,11 @@ module Kontena::Plugin::Upcloud::Nodes
     end
 
     def default_username
-      prompt.ask('UpCloud username: ', echo: true)
+      prompt.ask('UpCloud username:', echo: true)
     end
 
     def default_password
-      prompt.ask('UpCloud password: ', echo: false)
+      prompt.ask('UpCloud password:', echo: false)
     end
 
     def ask_node(token)
