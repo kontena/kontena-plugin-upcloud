@@ -26,19 +26,19 @@ module Kontena
           end
 
           server = servers[:servers][:server].find{|s| s[:hostname] == name}
-            
-          abort "Cannot find node #{name.colorize(:cyan)} in Upcloud" unless server
+
+          abort "Cannot find node #{name.colorize(:cyan)} in UpCloud" unless server
 
           server_data = get("server/#{server[:uuid]}")
 
           storage_devices = server_data.fetch(:server, {}).fetch(:storage_devices, {}).fetch(:storage_device, [])
           storage_uuids = storage_devices.map{|s| s[:storage]}
 
-          abort('No storage devices found for Upcloud node') if storage_uuids.empty?
+          abort('No storage devices found for UpCloud node') if storage_uuids.empty?
 
           if server
             unless server[:state].eql?('stopped')
-              spinner "Shutting down Upcloud node #{name.colorize(:cyan)} " do
+              spinner "Shutting down UpCloud node #{name.colorize(:cyan)} " do
                 device_data = post(
                   "server/#{server[:uuid]}/stop", body: {
                     stop_server: {
@@ -55,26 +55,26 @@ module Kontena
               end
             end
 
-            spinner "Terminating Upcloud node #{name.colorize(:cyan)} " do
+            spinner "Terminating UpCloud node #{name.colorize(:cyan)} " do
               response = delete("server/#{server[:uuid]}")
               abort "Cannot delete node #{name.colorize(:cyan)} in Upcloud" unless response[:success]
             end
 
             storage_uuids.each do |uuid|
-              spinner "Deleting Upcloud storage device '#{uuid.colorize(:cyan)}' " do
+              spinner "Deleting UpCloud storage device '#{uuid.colorize(:cyan)}' " do
                 response = delete("storage/#{uuid}")
                 unless response[:success]
-                  puts "#{"WARNING".colorize(:red)}: Couldn't delete Upcloud storage '#{uuid.colorize(:cyan)}', check manually."
+                  puts "#{"WARNING".colorize(:red)}: Couldn't delete UpCloud storage '#{uuid.colorize(:cyan)}', check manually."
                 end
               end
             end
           else
-            abort "Cannot find node #{name.colorize(:cyan)} in Upcloud"
+            abort "Cannot find node #{name.colorize(:cyan)} in UpCloud"
           end
           node = api_client.get("grids/#{grid['id']}/nodes")['nodes'].find{|n| n['name'] == name}
           if node
             spinner "Removing node #{name.colorize(:cyan)} from grid #{grid['name'].colorize(:cyan)} " do
-              api_client.delete("grids/#{grid['id']}/nodes/#{name}")
+              api_client.delete("nodes/#{grid['id']}/#{node['id']}")
             end
           end
         end

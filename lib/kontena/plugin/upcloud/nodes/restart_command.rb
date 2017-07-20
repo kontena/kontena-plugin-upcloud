@@ -4,8 +4,8 @@ module Kontena::Plugin::Upcloud::Nodes
     include Kontena::Cli::GridOptions
 
     parameter "NAME", "Node name"
-    option "--username", "USER", "Upcloud username", required: true
-    option "--password", "PASS", "Upcloud password", required: true
+    option "--username", "USER", "Upcloud username", required: true, environment_variable: 'UPCLOUD_USERNAME'
+    option "--password", "PASS", "Upcloud password", required: true, environment_variable: 'UPCLOUD_PASSWORD'
 
     def execute
       require_api_url

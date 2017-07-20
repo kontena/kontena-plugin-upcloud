@@ -35,7 +35,7 @@ module Kontena
           }
 
           abort_unless_api_access
-          
+
           abort('CoreOS template not found on Upcloud') unless coreos_template = find_template('CoreOS Stable')
           abort('Server plan not found on Upcloud') unless plan = find_plan(opts[:plan])
           abort('Zone not found on Upcloud') unless zone_exist?(opts[:zone])
@@ -45,7 +45,7 @@ module Kontena
           device_data = {
             server: {
               zone: opts[:zone],
-              title: "Kontena Grid #{opts[:grid]} Node #{hostname}",
+              title: "#{opts[:grid]}/#{hostname}",
               hostname: hostname,
               plan: plan[:name],
               vnc: 'off',
@@ -73,11 +73,11 @@ module Kontena
             }
           }.to_json
 
-          spinner "Creating Upcloud node #{hostname.colorize(:cyan)} " do
+          spinner "Creating UpCloud node #{hostname.colorize(:cyan)} " do
             response = post('server', body: device_data)
 
             if response.has_key?(:error)
-              abort("\nUpcloud server creation failed (#{response[:error].fetch(:error_message, '')})")
+              abort("\nUpCloud server creation failed (#{response[:error].fetch(:error_message, '')})")
             end
             device_data = response[:server]
 
@@ -113,7 +113,7 @@ module Kontena
 
         def set_labels(node, labels)
           data = {labels: labels}
-          api_client.put("nodes/#{node['id']}", data, {}, {'Kontena-Grid-Token' => node['grid']['token']})
+          api_client.put("nodes/#{node['grid']['id']}/#{node['id']}", data)
         end
       end
     end

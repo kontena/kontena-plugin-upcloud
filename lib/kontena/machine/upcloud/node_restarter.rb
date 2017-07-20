@@ -26,7 +26,7 @@ module Kontena
           server = servers[:servers][:server].find{|s| s[:hostname] == name}
 
           if server
-            spinner "Restarting Upcloud node #{name.colorize(:cyan)} " do
+            spinner "Restarting UpCloud node #{name.colorize(:cyan)} " do
               result = post(
                 "server/#{server[:uuid]}/restart", body: {
                   restart_server: {
@@ -38,11 +38,10 @@ module Kontena
               )
             end
           else
-            abort "Cannot find node #{name.colorize(:cyan)} in Upcloud"
+            abort "Cannot find node #{name.colorize(:cyan)} in UpCloud"
           end
         end
       end
     end
   end
 end
-
