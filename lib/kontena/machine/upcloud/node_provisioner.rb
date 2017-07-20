@@ -28,6 +28,7 @@ module Kontena
 
           abort('Invalid ssh key') unless ssh_key && ssh_key.start_with?('ssh-')
 
+          count = opts[:count].to_i
           userdata_vars = {
             version: opts[:version],
             master_uri: opts[:master_uri],
@@ -40,61 +41,63 @@ module Kontena
           abort('Server plan not found on Upcloud') unless plan = find_plan(opts[:plan])
           abort('Zone not found on Upcloud') unless zone_exist?(opts[:zone])
 
-          if opts[:name]
-            hostname = opts[:name]
-          else
-            hostname = generate_name
-          end
-          device_data = {
-            server: {
-              zone: opts[:zone],
-              title: "#{opts[:grid]}/#{hostname}",
-              hostname: hostname,
-              plan: plan[:name],
-              vnc: 'off',
-              timezone: 'UTC',
-              user_data: user_data(userdata_vars),
-              firewall: 'off',
-              storage_devices: {
-                storage_device: [
-                  {
-                    action: 'clone',
-                    storage: coreos_template[:uuid],
-                    title: "From template #{coreos_template[:title]}",
-                    size: plan[:storage_size],
-                    tier: 'maxiops'
+          count.times do |i|
+            if opts[:name]
+              hostname = count == 1 ? opts[:name] : "#{opts[:name]}-#{i + 1}"
+            else
+              hostname = generate_name
+            end
+            device_data = {
+              server: {
+                zone: opts[:zone],
+                title: "#{opts[:grid]}/#{hostname}",
+                hostname: hostname,
+                plan: plan[:name],
+                vnc: 'off',
+                timezone: 'UTC',
+                user_data: user_data(userdata_vars),
+                firewall: 'off',
+                storage_devices: {
+                  storage_device: [
+                    {
+                      action: 'clone',
+                      storage: coreos_template[:uuid],
+                      title: "From template #{coreos_template[:title]}",
+                      size: plan[:storage_size],
+                      tier: 'maxiops'
+                    }
+                  ]
+                },
+                login_user: {
+                  create_password: 'no',
+                  username: 'root',
+                  ssh_keys: {
+                    ssh_key: [ssh_key]
                   }
-                ]
-              },
-              login_user: {
-                create_password: 'no',
-                username: 'root',
-                ssh_keys: {
-                  ssh_key: [ssh_key]
                 }
               }
-            }
-          }.to_json
+            }.to_json
 
-          spinner "Creating UpCloud node #{hostname.colorize(:cyan)} " do
-            response = post('server', body: device_data)
+            spinner "Creating UpCloud node #{hostname.colorize(:cyan)} " do
+              response = post('server', body: device_data)
 
-            if response.has_key?(:error)
-              abort("\nUpCloud server creation failed (#{response[:error].fetch(:error_message, '')})")
+              if response.has_key?(:error)
+                abort("\nUpCloud server creation failed (#{response[:error].fetch(:error_message, '')})")
+              end
+              device_data = response[:server]
+
+              until device_data && device_data.fetch(:state, nil).to_s == 'maintenance'
+                device_data = get("server/#{device[:uuid]}").fetch(:server, {}) rescue nil
+                sleep 5
+              end
             end
-            device_data = response[:server]
 
-            until device_data && device_data.fetch(:state, nil).to_s == 'maintenance'
-              device_data = get("server/#{device[:uuid]}").fetch(:server, {}) rescue nil
-              sleep 5
+            node = nil
+            spinner "Waiting for node #{hostname.colorize(:cyan)} join to grid #{opts[:grid].colorize(:cyan)} " do
+              sleep 2 until node = node_exists_in_grid?(opts[:grid], hostname)
             end
+            set_labels(node, ["region=#{opts[:zone]}", "provider=upcloud"])
           end
-
-          node = nil
-          spinner "Waiting for node #{hostname.colorize(:cyan)} join to grid #{opts[:grid].colorize(:cyan)} " do
-            sleep 2 until node = node_exists_in_grid?(opts[:grid], hostname)
-          end
-          set_labels(node, ["region=#{opts[:zone]}", "provider=upcloud"])
         end
 
         def user_data(vars)

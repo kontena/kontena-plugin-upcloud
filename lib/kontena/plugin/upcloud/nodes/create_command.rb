@@ -7,6 +7,7 @@ module Kontena::Plugin::Upcloud::Nodes
     option "--username", "USER", "Upcloud username", required: true, environment_variable: 'UPCLOUD_USERNAME'
     option "--password", "PASS", "Upcloud password", required: true, environment_variable: 'UPCLOUD_PASSWORD'
     option "--ssh-key", "SSH_KEY", "Path to ssh public key", default: '~/.ssh/id_rsa.pub'
+    option "--count", "COUNT", "How many nodes should be created"
     option "--zone", "ZONE", "Zone", required: true
     option "--plan", "PLAN", "Server size", required: true
     option "--version", "VERSION", "Define installed Kontena version", default: 'latest'
@@ -22,6 +23,7 @@ module Kontena::Plugin::Upcloud::Nodes
         grid_token: grid['token'],
         grid: current_grid,
         ssh_key: ssh_key,
+        count: count,
         name: name,
         plan: plan,
         zone: zone,
@@ -42,6 +44,10 @@ module Kontena::Plugin::Upcloud::Nodes
 
     def default_password
       prompt.ask('UpCloud password:', echo: false)
+    end
+
+    def default_count
+      prompt.ask('How many servers:', default: 1)
     end
 
     def default_plan
