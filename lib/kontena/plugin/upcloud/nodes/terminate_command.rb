@@ -15,9 +15,8 @@ module Kontena::Plugin::Upcloud::Nodes
       require_relative '../../../machine/upcloud'
       confirm_command(name) unless forced?
       grid = client.get("grids/#{current_grid}")
-      node_name = ask_node(require_token)
       destroyer = Kontena::Machine::Upcloud::NodeDestroyer.new(client, username, password)
-      destroyer.run!(grid, node_name)
+      destroyer.run!(grid, name)
     end
 
     def default_username
@@ -28,21 +27,17 @@ module Kontena::Plugin::Upcloud::Nodes
       prompt.ask('UpCloud password:', echo: false)
     end
 
-    def ask_node(token)
-      if self.name.nil?
-        nodes = client(token).get("grids/#{current_grid}/nodes")
-        nodes = nodes['nodes'].select{ |n|
-          n['labels'] && n['labels'].include?('provider=upcloud'.freeze)
-        }
-        raise "Did not find any nodes with label provider=upcloud" if nodes.size == 0
-        prompt.select("Select node: ") do |menu|
-          nodes.sort_by{|n| n['node_number'] }.reverse.each do |node|
-            initial = node['initial_member'] ? '(initial) ' : ''
-            menu.choice "#{node['name']} #{initial}", node['name']
-          end
+    def default_name
+      nodes = client.get("grids/#{current_grid}/nodes")
+      nodes = nodes['nodes'].select{ |n|
+        n['labels'] && n['labels'].include?('provider=upcloud'.freeze)
+      }
+      raise "Did not find any nodes with label provider=upcloud" if nodes.size == 0
+      prompt.select("Select node: ") do |menu|
+        nodes.sort_by{|n| n['node_number'] }.reverse.each do |node|
+          initial = node['initial_member'] ? '(initial) ' : ''
+          menu.choice "#{node['name']} #{initial}", node['name']
         end
-      else
-        self.name
       end
     end
   end
