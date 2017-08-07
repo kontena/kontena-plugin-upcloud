@@ -9,23 +9,17 @@ module Kontena
       class MasterProvisioner
         include RandomName
         include Machine::CertHelper
-        include UpcloudCommon
         include Kontena::Cli::Common
 
-        attr_reader :http_client, :username, :password
+        attr_reader :http_client, :uc_client
 
         # @param [String] token Upcloud token
         def initialize(upcloud_username, upcloud_password)
-          @username = upcloud_username
-          @password = upcloud_password
+          @uc_client = Kontena::Machine::Upcloud::Client.new(upcloud_username, upcloud_password)
         end
 
         def run!(opts)
-          if File.readable?(File.expand_path(opts[:ssh_key]))
-            ssh_key = File.read(File.expand_path(opts[:ssh_key])).strip
-          end
-
-          abort('Invalid ssh key') unless ssh_key && ssh_key.start_with?('ssh-')
+          abort('Invalid ssh key') unless opts[:ssh_key].to_s.start_with?('ssh-')
 
           if opts[:ssl_cert]
             abort('Invalid ssl cert') unless File.exists?(File.expand_path(opts[:ssl_cert]))
@@ -36,11 +30,9 @@ module Kontena
             end
           end
 
-          abort_unless_api_access
-
-          abort('CoreOS template not found on Upcloud') unless coreos_template = find_template('CoreOS Stable')
-          abort('Server plan not found on Upcloud') unless plan = find_plan(opts[:plan])
-          abort('Zone not found on Upcloud') unless zone_exist?(opts[:zone])
+          abort('CoreOS template not found on Upcloud') unless coreos_template = uc_client.find_template('CoreOS Stable')
+          abort('Server plan not found on Upcloud') unless plan = uc_client.find_plan(opts[:plan])
+          abort('Zone not found on Upcloud') unless uc_client.zone_exist?(opts[:zone])
 
           if opts[:name]
             server_name = opts[:name]
@@ -61,7 +53,7 @@ module Kontena
           device_data = {
             server: {
               zone: opts[:zone],
-              title: server_name,
+              title: hostname,
               hostname: hostname,
               plan: plan[:name],
               vnc: 'off',
@@ -83,21 +75,21 @@ module Kontena
                 create_password: 'no',
                 username: 'root',
                 ssh_keys: {
-                  ssh_key: [ssh_key]
+                  ssh_key: [opts[:ssh_key]]
                 }
               }
             }
           }.to_json
 
           spinner "Creating an Upcloud server #{hostname.colorize(:cyan)} " do
-            response = post('server', body: device_data)
+            response = uc_client.post('server', device_data)
             if response.has_key?(:error)
               abort("\nUpcloud server creation failed (#{response[:error].fetch(:error_message, '')})")
             end
             device_data = response[:server]
 
             until device_data && device_data.fetch(:state, nil).to_s == 'maintenance'
-              device_data = get("server/#{device[:uuid]}").fetch(:server, {}) rescue nil
+              device_data = uc_client.get("server/#{device[:uuid]}").fetch(:server, {}) rescue nil
               sleep 5
             end
           end
@@ -128,7 +120,8 @@ module Kontena
             public_ip: device_public_ip[:address],
             provider: 'upcloud',
             version: master_version,
-            code: opts[:initial_admin_code]
+            code: opts[:initial_admin_code],
+            ssl_certificate: (respond_to?(:certificate_public_key) && !opts[:ssl_cert]) ? certificate_public_key(ssl_cert) : nil
           }
         end
 

@@ -3,24 +3,20 @@ module Kontena
     module Upcloud
       class NodeDestroyer
         include RandomName
-        include UpcloudCommon
         include Kontena::Cli::ShellSpinner
 
-        attr_reader :api_client, :username, :password
+        attr_reader :api_client, :uc_client
 
         # @param [Kontena::Client] api_client Kontena api client
         # @param [String] token Upcloud token
         def initialize(api_client, upcloud_username, upcloud_password)
           @api_client = api_client
-          @username = upcloud_username
-          @password = upcloud_password
+          @uc_client = Kontena::Machine::Upcloud::Client.new(upcloud_username, upcloud_password)
         end
 
         def run!(grid, name)
 
-          abort_unless_api_access
-
-          servers = get('server')
+          servers = uc_client.get('server')
           unless servers && servers.has_key?(:servers)
             abort('Upcloud API error')
           end
@@ -29,7 +25,7 @@ module Kontena
 
           abort "Cannot find node #{name.colorize(:cyan)} in UpCloud" unless server
 
-          server_data = get("server/#{server[:uuid]}")
+          server_data = uc_client.get("server/#{server[:uuid]}")
 
           storage_devices = server_data.fetch(:server, {}).fetch(:storage_devices, {}).fetch(:storage_device, [])
           storage_uuids = storage_devices.map{|s| s[:storage]}
@@ -39,8 +35,8 @@ module Kontena
           if server
             unless server[:state].eql?('stopped')
               spinner "Shutting down UpCloud node #{name.colorize(:cyan)} " do
-                device_data = post(
-                  "server/#{server[:uuid]}/stop", body: {
+                device_data = uc_client.post(
+                  "server/#{server[:uuid]}/stop", {
                     stop_server: {
                       stop_type: 'soft',
                       timeout: 120
@@ -49,20 +45,20 @@ module Kontena
                 )
 
                 until device_data && device_data.fetch(:state, nil).to_s.eql?('stopped')
-                  device_data = get("server/#{server[:uuid]}").fetch(:server, {}) rescue nil
+                  device_data = uc_client.get("server/#{server[:uuid]}").fetch(:server, {}) rescue nil
                   sleep 5
                 end
               end
             end
 
             spinner "Terminating UpCloud node #{name.colorize(:cyan)} " do
-              response = delete("server/#{server[:uuid]}")
+              response = uc_client.delete("server/#{server[:uuid]}")
               abort "Cannot delete node #{name.colorize(:cyan)} in Upcloud" unless response[:success]
             end
 
             storage_uuids.each do |uuid|
               spinner "Deleting UpCloud storage device '#{uuid.colorize(:cyan)}' " do
-                response = delete("storage/#{uuid}")
+                response = uc_client.delete("storage/#{uuid}")
                 unless response[:success]
                   puts "#{"WARNING".colorize(:red)}: Couldn't delete UpCloud storage '#{uuid.colorize(:cyan)}', check manually."
                 end
