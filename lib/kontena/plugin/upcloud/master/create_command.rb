@@ -1,23 +1,23 @@
 require 'securerandom'
+require 'kontena/plugin/upcloud/prompts'
 
 module Kontena::Plugin::Upcloud::Master
   class CreateCommand < Kontena::Command
     include Kontena::Cli::Common
 
     option "--name", "[NAME]", "Set Kontena Master name"
-    option "--username", "USER", "Upcloud username", required: true, environment_variable: 'UPCLOUD_USERNAME'
-    option "--password", "PASS", "Upcloud password", required: true, environment_variable: 'UPCLOUD_PASSWORD'
-    option "--ssh-key", "SSH_KEY", "Path to ssh public key", default: '~/.ssh/id_rsa.pub'
+
+    include Kontena::Plugin::Upcloud::Prompts::Create
+
     option "--ssl-cert", "SSL CERT", "SSL certificate file (optional)"
-    option "--plan", "PLAN", "Server plan", required: true
-    option "--zone", "ZONE", "Zone", required: true
     option "--vault-secret", "VAULT_SECRET", "Secret key for Vault (optional)"
     option "--vault-iv", "VAULT_IV", "Initialization vector for Vault (optional)"
     option "--mongodb-uri", "URI", "External MongoDB uri (optional)"
-    option "--version", "VERSION", "Define installed Kontena version", default: 'latest'
 
     def execute
       require_relative '../../../machine/upcloud'
+
+      abort_unless_api_access
 
       provisioner.run!(
           name: self.name,
@@ -35,30 +35,6 @@ module Kontena::Plugin::Upcloud::Master
 
     def provisioner
       Kontena::Machine::Upcloud::MasterProvisioner.new(username, password)
-    end
-
-    def default_username
-      prompt.ask('UpCloud username:', echo: true)
-    end
-
-    def default_password
-      prompt.ask('UpCloud password:', echo: false)
-    end
-
-    def default_plan
-      prompt.select("Choose plan:") do |menu|
-        Kontena::Plugin::Upcloud::PLANS.each do |plan, name|
-          menu.choice name, plan
-        end
-      end
-    end
-
-    def default_zone
-      prompt.select("Choose availability zone:") do |menu|
-        Kontena::Plugin::Upcloud::ZONES.each do |zone, name|
-          menu.choice name, zone
-        end
-      end
     end
   end
 end

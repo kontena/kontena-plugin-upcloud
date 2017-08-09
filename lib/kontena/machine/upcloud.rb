@@ -1,6 +1,6 @@
 require 'kontena/machine/random_name'
 require 'kontena/machine/cert_helper'
-require_relative 'upcloud/upcloud_common'
+require_relative 'upcloud/client'
 require_relative 'upcloud/node_provisioner'
 require_relative 'upcloud/node_destroyer'
 require_relative 'upcloud/node_restarter'

@@ -3,22 +3,19 @@ module Kontena
     module Upcloud
       class NodeRestarter
         include RandomName
-        include UpcloudCommon
         include Kontena::Cli::ShellSpinner
 
-        attr_reader :username, :password
+        attr_reader :uc_client
 
         # @param [String] upcloud_username Upcloud username
         # @param [String] upcloud_password Upcloud password
         def initialize(upcloud_username, upcloud_password)
-          @username = upcloud_username
-          @password = upcloud_password
+          @uc_client = Kontena::Machine::Upcloud::Client.new(upcloud_username, upcloud_password)
         end
 
         def run!(name)
-          abort_unless_api_access
 
-          servers = get('server')
+          servers = uc_client.get('server')
           unless servers && servers.has_key?(:servers)
             abort('Upcloud API error')
           end
@@ -27,8 +24,8 @@ module Kontena
 
           if server
             spinner "Restarting UpCloud node #{name.colorize(:cyan)} " do
-              result = post(
-                "server/#{server[:uuid]}/restart", body: {
+              result = uc_client.post(
+                "server/#{server[:uuid]}/restart", {
                   restart_server: {
                     stop_type: 'soft',
                     timeout: 600,
