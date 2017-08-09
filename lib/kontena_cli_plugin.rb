@@ -1,5 +1,5 @@
 require 'kontena_cli'
-require_relative 'kontena/plugin/upcloud'
-require_relative 'kontena/plugin/upcloud_command'
+require 'kontena/plugin/upcloud'
+require 'kontena/cli/subcommand_loader'
 
-Kontena::MainCommand.register("upcloud", "Upcloud specific commands", Kontena::Plugin::UpcloudCommand)
+Kontena::MainCommand.register("upcloud", "Upcloud specific commands", Kontena::Cli::SubcommandLoader.new('kontena/plugin/upcloud_command'))

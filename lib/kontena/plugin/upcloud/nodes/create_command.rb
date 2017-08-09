@@ -14,10 +14,10 @@ module Kontena::Plugin::Upcloud::Nodes
     requires_current_master_token
 
     def execute
-      require_relative '../../../machine/upcloud'
 
       abort_unless_api_access
 
+      require 'kontena/machine/upcloud'
       grid = fetch_grid
       provisioner = Kontena::Machine::Upcloud::NodeProvisioner.new(client, username, password)
       provisioner.run!(

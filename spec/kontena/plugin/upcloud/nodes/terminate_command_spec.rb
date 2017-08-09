@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'kontena/plugin/upcloud_command'
+require 'kontena/plugin/upcloud/nodes/terminate_command'
 
 describe Kontena::Plugin::Upcloud::Nodes::TerminateCommand do
 

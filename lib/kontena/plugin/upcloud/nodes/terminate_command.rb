@@ -1,4 +1,5 @@
 require 'kontena/plugin/upcloud/prompts'
+
 module Kontena::Plugin::Upcloud::Nodes
   class TerminateCommand < Kontena::Command
     include Kontena::Cli::Common
@@ -13,7 +14,8 @@ module Kontena::Plugin::Upcloud::Nodes
 
     def execute
       abort_unless_api_access
-      require_relative '../../../machine/upcloud'
+
+      require 'kontena/machine/upcloud'
       confirm_command(name) unless forced?
       grid = client.get("grids/#{current_grid}")
       destroyer = Kontena::Machine::Upcloud::NodeDestroyer.new(client, username, password)
