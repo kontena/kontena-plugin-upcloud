@@ -27,7 +27,7 @@ module Kontena::Plugin::Upcloud::Nodes
     end
 
     def default_password
-      prompt.ask('UpCloud password:', echo: false)
+      prompt.mask('UpCloud password:')
     end
 
     def default_name

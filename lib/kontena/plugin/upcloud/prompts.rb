@@ -27,7 +27,7 @@ module Kontena
             end
 
             def default_password
-              pass = prompt.ask('UpCloud password:', echo: false)
+              pass = prompt.mask('UpCloud password:')
             end
           end
         end
