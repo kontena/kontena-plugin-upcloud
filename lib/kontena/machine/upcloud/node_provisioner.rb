@@ -109,9 +109,12 @@ module Kontena
           ERB.new(template).result(OpenStruct.new(vars).instance_eval { binding })
         end
 
+        # @param [Hash] node
+        # @param [Array<String>] labels
         def set_labels(node, labels)
-          data = {labels: labels}
-          api_client.put("nodes/#{node['grid']['id']}/#{node['id']}", data)
+          data = {}
+          data[:labels] = labels
+          api_client.put("nodes/#{node['id']}", data, {}, {'Kontena-Grid-Token' => node['grid']['token']})
         end
       end
     end
