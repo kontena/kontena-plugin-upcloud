@@ -114,7 +114,7 @@ module Kontena
         def set_labels(node, labels)
           data = {}
           data[:labels] = labels
-          api_client.put("nodes/#{node['id']}", data, {}, {'Kontena-Grid-Token' => node['grid']['token']})
+          api_client.put("nodes/#{node['id']}", data)
         end
       end
     end
