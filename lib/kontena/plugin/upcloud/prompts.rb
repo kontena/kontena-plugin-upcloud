@@ -66,7 +66,7 @@ module Kontena
           end
 
           def ssh_key
-            return File.read(ssh_key_path) unless ssh_key_path.nil?
+            return File.read(ssh_key_path).strip unless ssh_key_path.nil?
             default = File.read(Defaults::DEFAULT_SSH_KEY_PATH).strip rescue nil
             prompt.ask('SSH public key: (enter an ssh key in OpenSSH format "ssh-xxx xxxxx key_name")', default: default) do |q|
               q.validate /^ssh-rsa \S+ \S+$/
